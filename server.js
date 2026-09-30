@@ -445,13 +445,19 @@ app.post("/api/chat", requireUser, async (req, res) => {
     });
     res.on("close", () => aborted && stream.abort());
 
-    stream.on("text", (text) => send({ text }));
+    let answerText = "";
+    stream.on("text", (text) => { answerText += text; send({ text }); });
     const final = await stream.finalMessage();
     const u = final.usage;
     calls.push({ model: final.model, usage: u });
     const cost = calls.reduce((sum, c) => sum + costUSD(c.model, c.usage), 0);
     send({ usage: { cost, calls } });
-    recordUsage(req.user.id, cost);
+    recordUsage(req.user.id, cost, {
+      question: latest.text,
+      answer: answerText,
+      hasImage: latest.images.length > 0,
+      pages: latest.refs.reduce((n, r) => n + r.end - r.start + 1, 0),
+    });
     console.log(`Tokens: in ${u.input_tokens}, cache read ${u.cache_read_input_tokens}, cache write ${u.cache_creation_input_tokens}, out ${u.output_tokens}; cost $${cost.toFixed(4)}`);
     if (final.stop_reason === "refusal") {
       send({ error: "تعذّر الرد على هذا السؤال. جرّب صياغته بطريقة أخرى." });

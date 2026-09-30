@@ -1,35 +1,256 @@
 <!doctype html>
-<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>لوحة الإدارة</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Kufi+Arabic:wght@700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/page.css"></head>
-<body><div class="wrap">
-<h1>لوحة الإدارة</h1>
-<div id="out">جارٍ التحميل…</div>
-<p><a href="/">العودة إلى الموقع</a></p>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة الإدارة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Kufi+Arabic:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f4ef; --surface: #fff; --text: #1f2328; --muted: #6b6f76; --border: #e3dfd6;
+    --accent: #2f6f5e; --accent-soft: #e4efe9; --code-bg: #f1eee7; --warn: #fff4d6; --warn-text: #7a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181b; --surface: #1f2226; --text: #e8e6e1; --muted: #9a9ea5; --border: #30343a;
+      --accent: #6cc3a6; --accent-soft: #23332e; --code-bg: #2a2e33; --warn: #3a3220; --warn-text: #f0d48a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181b; --surface: #1f2226; --text: #e8e6e1; --muted: #9a9ea5; --border: #30343a;
+    --accent: #6cc3a6; --accent-soft: #23332e; --code-bg: #2a2e33; --warn: #3a3220; --warn-text: #f0d48a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: "Noto Naskh Arabic", system-ui, sans-serif; font-size: 16px; line-height: 1.8; }
+  header {
+    background: var(--surface); border-bottom: 1px solid var(--border); padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; position: sticky; top: 0; z-index: 5;
+  }
+  header h1 { font-family: "Noto Kufi Arabic", sans-serif; font-size: 18px; margin: 0; color: var(--accent); white-space: nowrap; }
+  header a { color: var(--muted); font-size: 14px; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 16px 16px 48px; }
+  .tabs { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tabs button {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text); font: inherit; font-size: 15px;
+    padding: 6px 16px; border-radius: 999px; cursor: pointer;
+  }
+  .tabs button.on { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; }
+  .stat .v { font-size: 24px; font-weight: 700; color: var(--accent); direction: ltr; text-align: right; }
+  .stat .k { color: var(--muted); font-size: 13px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .scroll-x { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { padding: 10px 12px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 600; font-size: 13px; background: var(--bg); }
+  tbody tr { cursor: pointer; }
+  tbody tr:hover { background: var(--accent-soft); }
+  td.email { direction: ltr; text-align: left; font-family: ui-monospace, Menlo, monospace; font-size: 13px; }
+  .num { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-block; font-size: 12px; padding: 0 8px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); margin-inline-start: 4px; }
+  .tag.paid { background: #e3f1ff; color: #1d5fa8; }
+  .tag.low { background: var(--warn); color: var(--warn-text); }
+  .search { width: 100%; max-width: 360px; font: inherit; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--surface); color: var(--text); margin-bottom: 12px; }
+  .back { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; padding: 0; margin-bottom: 12px; }
+  .user-head { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .user-head h2 { font-size: 18px; margin: 0; direction: ltr; font-family: ui-monospace, Menlo, monospace; }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0 18px; }
+  .actions button, .actions input {
+    font: inherit; font-size: 14px; padding: 6px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--text);
+  }
+  .actions button { cursor: pointer; }
+  .actions button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+  .actions input { width: 90px; direction: ltr; }
+  .note { background: var(--warn); color: var(--warn-text); border-radius: 10px; padding: 8px 12px; font-size: 14px; margin-bottom: 12px; }
+  .note code { direction: ltr; unicode-bidi: isolate; font-size: 15px; font-weight: 700; }
+  .item { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 10px; }
+  .item .meta { color: var(--muted); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 6px; }
+  .item .meta .who { direction: ltr; font-family: ui-monospace, Menlo, monospace; color: var(--accent); cursor: pointer; }
+  .item .q { white-space: pre-wrap; unicode-bidi: plaintext; font-weight: 600; }
+  details { margin-top: 6px; }
+  summary { color: var(--accent); cursor: pointer; font-size: 14px; }
+  .answer { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); font-size: 15px; }
+  .answer code { direction: ltr; unicode-bidi: isolate; background: var(--code-bg); padding: 0 6px; border-radius: 6px; font-size: 14px; }
+  .answer pre { direction: ltr; text-align: left; background: var(--code-bg); padding: 8px 12px; border-radius: 8px; overflow-x: auto; }
+  .answer h1, .answer h2, .answer h3 { font-size: 16px; margin: 10px 0 4px; color: var(--accent); }
+  .empty { color: var(--muted); padding: 24px; text-align: center; }
+  h3.section { font-family: "Noto Kufi Arabic", sans-serif; font-size: 16px; margin: 22px 0 10px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>لوحة الإدارة</h1>
+  <a href="/">العودة إلى الموقع</a>
+</header>
+<div class="wrap">
+  <div class="tabs">
+    <button type="button" data-view="overview" class="on">نظرة عامة</button>
+    <button type="button" data-view="users">المستخدمون</button>
+    <button type="button" data-view="activity">آخر الأسئلة</button>
+  </div>
+  <div id="view">جارٍ التحميل…</div>
 </div>
 <script>
   const ILS_PER_USD = 3.7; // approximate, for a rough profit view only
-  fetch("/api/admin/stats").then(async (r) => {
-    const out = document.getElementById("out");
-    if (!r.ok) { out.textContent = r.status === 401 ? "سجّل الدخول أولًا." : "هذه الصفحة للمدير فقط."; return; }
+  const view = document.getElementById("view");
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const usd = (n) => "$" + Number(n || 0).toFixed(2);
+  const ils = (n) => "₪" + Math.round(n || 0).toLocaleString("en");
+  const when = (ms) => (ms ? new Date(ms).toLocaleString("ar", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "—");
+  const day = (ms) => (ms ? new Date(ms).toLocaleDateString("ar", { day: "numeric", month: "short", year: "numeric" }) : "—");
+  const md = (t) => DOMPurify.sanitize(marked.parse(t || "", { breaks: true }));
+
+  async function api(path, body) {
+    const r = await fetch(path, body ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) } : {});
+    if (r.status === 401) throw new Error("سجّل الدخول أولًا في الموقع بحساب المدير.");
+    if (r.status === 403) throw new Error("هذه الصفحة للمدير فقط.");
     const d = await r.json();
-    const stat = (k, v) => '<div class="stat"><div class="v">' + v + '</div><div class="k">' + k + '</div></div>';
-    const ils = (n) => "₪" + Math.round(n).toLocaleString("en");
-    const usd = (n) => "$" + n.toFixed(2);
-    out.innerHTML =
-      '<div class="stats">' +
-      stat("المستخدمون", d.users) +
-      stat("المشترون", d.payingUsers) +
-      stat("الدخل (كل الوقت)", ils(d.revenue)) +
-      stat("الدخل (٣٠ يومًا)", ils(d.revenue30d)) +
-      stat("الأسئلة (كل الوقت)", d.questions) +
-      stat("الأسئلة (٣٠ يومًا)", d.questions30d) +
-      stat("تكلفة الذكاء الاصطناعي (كل الوقت)", usd(d.apiCostUsd)) +
-      stat("تكلفة الذكاء الاصطناعي (٣٠ يومًا)", usd(d.apiCostUsd30d)) +
-      stat("متوسط تكلفة السؤال", d.questions ? usd(d.apiCostUsd / d.questions) : "—") +
-      stat("الربح التقريبي (٣٠ يومًا، قبل الرسوم والضرائب)", ils(d.revenue30d - d.apiCostUsd30d * ILS_PER_USD)) +
-      "</div><h2>آخر المشتريات</h2>" +
+    if (!r.ok) throw new Error(d.error || "حدث خطأ.");
+    return d;
+  }
+
+  // ---------- Overview ----------
+  async function showOverview() {
+    const d = await api("/api/admin/stats");
+    const stat = (k, v) => `<div class="stat"><div class="v">${v}</div><div class="k">${k}</div></div>`;
+    view.innerHTML =
+      `<div class="stats">
+        ${stat("المستخدمون", d.users)}
+        ${stat("المشترون", d.payingUsers)}
+        ${stat("الأسئلة (كل الوقت)", d.questions)}
+        ${stat("الأسئلة (٣٠ يومًا)", d.questions30d)}
+        ${stat("الدخل (كل الوقت)", ils(d.revenue))}
+        ${stat("الدخل (٣٠ يومًا)", ils(d.revenue30d))}
+        ${stat("تكلفة الذكاء الاصطناعي (كل الوقت)", usd(d.apiCostUsd))}
+        ${stat("تكلفة الذكاء الاصطناعي (٣٠ يومًا)", usd(d.apiCostUsd30d))}
+        ${stat("متوسط تكلفة السؤال", d.questions ? usd(d.apiCostUsd / d.questions) : "—")}
+        ${stat("الربح التقريبي (٣٠ يومًا، قبل الرسوم والضرائب)", ils(d.revenue30d - d.apiCostUsd30d * ILS_PER_USD))}
+      </div>
+      <h3 class="section">آخر المشتريات</h3>` +
       (d.recentPurchases.length
-        ? '<ul class="list">' + d.recentPurchases.map((p) => "<li>" + p.email.replace(/</g, "&lt;") + " — ₪" + p.amount + " — " + new Date(p.created_at).toLocaleDateString("ar") + "</li>").join("") + "</ul>"
-        : "<p>لا توجد مشتريات بعد.</p>");
-  });
-</script></body></html>
+        ? `<div class="panel scroll-x"><table><thead><tr><th>المستخدم</th><th>المبلغ</th><th>التاريخ</th></tr></thead><tbody>` +
+          d.recentPurchases.map((p) => `<tr><td class="email">${esc(p.email)}</td><td class="num">₪${p.amount}</td><td>${day(p.created_at)}</td></tr>`).join("") +
+          `</tbody></table></div>`
+        : `<div class="panel empty">لا توجد مشتريات بعد.</div>`);
+  }
+
+  // ---------- Users ----------
+  let users = [];
+  async function showUsers() {
+    users = await api("/api/admin/users");
+    view.innerHTML =
+      `<input class="search" id="q" placeholder="ابحث بالبريد…" dir="ltr">
+       <div class="panel scroll-x"><table>
+         <thead><tr><th>المستخدم</th><th>الأسئلة المستعملة</th><th>المتبقي</th><th>آخر نشاط</th><th>التكلفة</th><th>تاريخ التسجيل</th></tr></thead>
+         <tbody id="rows"></tbody>
+       </table></div>`;
+    const draw = () => {
+      const q = document.getElementById("q").value.trim().toLowerCase();
+      const list = users.filter((u) => u.email.toLowerCase().includes(q));
+      document.getElementById("rows").innerHTML = list.length
+        ? list.map((u) => {
+            const tags =
+              (u.isAdmin ? '<span class="tag">مدير</span>' : "") +
+              (u.purchases ? '<span class="tag paid">مشترٍ</span>' : "") +
+              (u.invited ? '<span class="tag">دعوة</span>' : "") +
+              (!u.isAdmin && u.questions_left <= 3 ? '<span class="tag low">قارب على الانتهاء</span>' : "");
+            return `<tr data-id="${u.id}">
+              <td class="email">${esc(u.email)}${tags}</td>
+              <td class="num">${u.questions}</td>
+              <td class="num">${u.isAdmin ? "∞" : u.questions_left}</td>
+              <td>${when(u.last_active)}</td>
+              <td class="num">${usd(u.cost)}</td>
+              <td>${day(u.created_at)}</td>
+            </tr>`;
+          }).join("")
+        : `<tr><td colspan="6" class="empty">لا يوجد مستخدمون.</td></tr>`;
+      document.querySelectorAll("#rows tr[data-id]").forEach((tr) => tr.addEventListener("click", () => showUser(Number(tr.dataset.id))));
+    };
+    document.getElementById("q").addEventListener("input", draw);
+    draw();
+  }
+
+  function activityItem(a, withUser) {
+    return `<div class="item">
+      <div class="meta">
+        <span>${when(a.created_at)}</span>
+        ${withUser ? `<span class="who" data-user="${a.user_id}">${esc(a.email)}</span>` : ""}
+        ${a.has_image ? "<span>📷 مع صورة</span>" : ""}
+        <span>${a.pages} صفحات</span>
+        <span class="num">${usd(a.cost_usd)}</span>
+      </div>
+      <div class="q">${a.question ? esc(a.question) : '<span style="color:var(--muted)">(سؤال قديم، قبل حفظ النصوص)</span>'}</div>
+      ${a.answer ? `<details><summary>إجابة المعلّم</summary><div class="answer">${md(a.answer)}</div></details>` : ""}
+    </div>`;
+  }
+
+  async function showUser(id) {
+    if (!users.length) users = await api("/api/admin/users");
+    const u = users.find((x) => x.id === id);
+    const acts = await api(`/api/admin/users/${id}/activity`);
+    view.innerHTML =
+      `<button class="back" id="back">→ رجوع إلى المستخدمين</button>
+       <div class="user-head"><h2>${esc(u.email)}</h2></div>
+       <div class="stats">
+         <div class="stat"><div class="v">${u.questions}</div><div class="k">أسئلة مستعملة</div></div>
+         <div class="stat"><div class="v">${u.isAdmin ? "∞" : u.questions_left}</div><div class="k">متبقية</div></div>
+         <div class="stat"><div class="v">${usd(u.cost)}</div><div class="k">التكلفة</div></div>
+         <div class="stat"><div class="v" style="font-size:16px">${when(u.last_active)}</div><div class="k">آخر نشاط</div></div>
+       </div>
+       <div class="actions">
+         <button class="primary" data-grant="20">+٢٠ سؤالًا</button>
+         <input id="grantN" type="number" placeholder="عدد">
+         <button id="grantBtn">أضف</button>
+         <button id="pwBtn">كلمة مرور جديدة</button>
+       </div>
+       <div id="note"></div>
+       <h3 class="section">الأسئلة (${acts.length})</h3>
+       ${acts.length ? acts.map((a) => activityItem(a, false)).join("") : '<div class="panel empty">لم يسأل هذا المستخدم أي سؤال بعد.</div>'}`;
+    document.getElementById("back").onclick = () => { setTab("users"); showUsers(); };
+    const note = document.getElementById("note");
+    const grant = async (n) => {
+      try {
+        await api(`/api/admin/users/${id}/grant`, { questions: n });
+        users = await api("/api/admin/users");
+        await showUser(id);
+        document.getElementById("note").innerHTML = `<div class="note">تمت إضافة ${n} سؤالًا.</div>`;
+      } catch (e) { note.innerHTML = `<div class="note">${esc(e.message)}</div>`; }
+    };
+    view.querySelector("[data-grant]").onclick = () => grant(20);
+    document.getElementById("grantBtn").onclick = () => grant(Number(document.getElementById("grantN").value));
+    document.getElementById("pwBtn").onclick = async () => {
+      if (!confirm("إنشاء كلمة مرور جديدة لهذا المستخدم؟ ستتوقف كلمة المرور القديمة فورًا.")) return;
+      try {
+        const d = await api(`/api/admin/users/${id}/password`, {});
+        note.innerHTML = `<div class="note">كلمة المرور الجديدة: <code>${esc(d.password)}</code> — أرسلها للمستخدم.</div>`;
+      } catch (e) { note.innerHTML = `<div class="note">${esc(e.message)}</div>`; }
+    };
+  }
+
+  // ---------- Activity feed ----------
+  async function showActivity() {
+    const acts = await api("/api/admin/activity");
+    view.innerHTML = acts.length ? acts.map((a) => activityItem(a, true)).join("") : '<div class="panel empty">لا توجد أسئلة بعد.</div>';
+    view.querySelectorAll(".who").forEach((el) => el.addEventListener("click", () => { setTab("users"); showUser(Number(el.dataset.user)); }));
+  }
+
+  // ---------- Tabs ----------
+  const views = { overview: showOverview, users: showUsers, activity: showActivity };
+  function setTab(name) {
+    document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b.dataset.view === name));
+  }
+  async function openView(name) {
+    setTab(name);
+    view.textContent = "جارٍ التحميل…";
+    try { await views[name](); } catch (e) { view.innerHTML = `<div class="panel empty">${esc(e.message)}</div>`; }
+  }
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => openView(b.dataset.view)));
+  openView("overview");
+</script>
+</body>
+</html>

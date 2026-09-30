@@ -1,6 +1,7 @@
 // Accounts, question balance, Stripe checkout and admin stats.
 // Product: one package (PACKAGE_QUESTIONS questions valid PACKAGE_DAYS days) bought once via Stripe
 // Checkout, plus FREE_QUESTIONS on signup. Every student message spends one question.
+import crypto from "crypto";
 import express from "express";
 import Stripe from "stripe";
 import { db, sha256, newToken, hashPassword, checkPassword } from "./db.js";
@@ -86,8 +87,9 @@ export function refundQuestion(userId) {
   db.prepare("UPDATE users SET questions_left = questions_left + 1 WHERE id = ?").run(userId);
 }
 
-export function recordUsage(userId, costUsd) {
-  db.prepare("INSERT INTO usage (user_id, cost_usd, created_at) VALUES (?, ?, ?)").run(userId, costUsd, Date.now());
+export function recordUsage(userId, costUsd, { question = "", answer = "", hasImage = false, pages = 0 } = {}) {
+  db.prepare("INSERT INTO usage (user_id, cost_usd, created_at, question, answer, has_image, pages) VALUES (?, ?, ?, ?, ?, ?, ?)")
+    .run(userId, costUsd, Date.now(), question.slice(0, 5000), answer.slice(0, 20000), hasImage ? 1 : 0, pages);
 }
 
 // ---------- Email (password reset) ----------
@@ -252,6 +254,56 @@ accountRoutes.get("/api/admin/stats", requireUser, (req, res) => {
     apiCostUsd30d: one("SELECT COALESCE(SUM(cost_usd),0) s FROM usage WHERE created_at > ?", since).s,
     recentPurchases: db.prepare("SELECT u.email, p.amount / 100.0 AS amount, p.created_at FROM purchases p JOIN users u ON u.id = p.user_id ORDER BY p.created_at DESC LIMIT 20").all(),
   });
+});
+
+// ---------- Admin: users and activity ----------
+function requireAdmin(req, res, next) {
+  if (!isAdmin(req.user)) return res.status(403).json({ error: "غير مسموح." });
+  next();
+}
+
+accountRoutes.get("/api/admin/users", requireUser, requireAdmin, (_req, res) => {
+  const rows = db.prepare(`
+    SELECT u.id, u.email, u.created_at, u.questions_left, u.access_until,
+           COUNT(g.id) AS questions, COALESCE(SUM(g.cost_usd), 0) AS cost, MAX(g.created_at) AS last_active,
+           (SELECT COUNT(*) FROM purchases p WHERE p.user_id = u.id) AS purchases,
+           EXISTS (SELECT 1 FROM invites_used i WHERE i.user_id = u.id) AS invited
+    FROM users u LEFT JOIN usage g ON g.user_id = u.id
+    GROUP BY u.id ORDER BY COALESCE(MAX(g.created_at), u.created_at) DESC`).all();
+  res.json(rows.map((r) => ({ ...r, isAdmin: ADMIN_EMAILS.includes(r.email.toLowerCase()) })));
+});
+
+accountRoutes.get("/api/admin/users/:id/activity", requireUser, requireAdmin, (req, res) => {
+  res.json(db.prepare(
+    "SELECT id, created_at, question, answer, has_image, pages, cost_usd FROM usage WHERE user_id = ? ORDER BY created_at DESC LIMIT 200",
+  ).all(Number(req.params.id)));
+});
+
+accountRoutes.get("/api/admin/activity", requireUser, requireAdmin, (_req, res) => {
+  res.json(db.prepare(`
+    SELECT g.id, g.created_at, g.question, g.answer, g.has_image, g.pages, g.cost_usd, u.id AS user_id, u.email
+    FROM usage g JOIN users u ON u.id = g.user_id ORDER BY g.created_at DESC LIMIT 100`).all());
+});
+
+// Give a user extra questions (e.g. a tester who ran out).
+accountRoutes.post("/api/admin/users/:id/grant", requireUser, requireAdmin, (req, res) => {
+  const n = Math.trunc(Number(req.body?.questions));
+  if (!Number.isFinite(n) || n === 0 || Math.abs(n) > 5000) return res.status(400).json({ error: "عدد غير صالح." });
+  const r = db.prepare("UPDATE users SET questions_left = MAX(0, questions_left + ?) WHERE id = ?").run(n, Number(req.params.id));
+  if (!r.changes) return res.status(404).json({ error: "المستخدم غير موجود." });
+  res.json({ ok: true });
+});
+
+// Set a new random password (testers' emails are placeholders, so email reset can't reach them).
+accountRoutes.post("/api/admin/users/:id/password", requireUser, requireAdmin, (req, res) => {
+  const a = "abcdefghjkmnpqrstuvwxyz23456789";
+  const pick = () => Array.from({ length: 4 }, () => a[crypto.randomInt(a.length)]).join("");
+  const password = `${pick()}-${pick()}`;
+  const id = Number(req.params.id);
+  const r = db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(hashPassword(password), id);
+  if (!r.changes) return res.status(404).json({ error: "المستخدم غير موجود." });
+  db.prepare("DELETE FROM sessions WHERE user_id = ?").run(id);
+  res.json({ password });
 });
 
 // ---------- Stripe webhook (mounted with a raw body, before express.json) ----------

@@ -47,6 +47,14 @@ db.exec(`
   );
 `);
 
+// Added later: what was asked and answered (for the admin activity view). Photos are not stored,
+// only whether the message had one. ALTER TABLE only when the column is missing (older DBs).
+const usageCols = db.prepare("PRAGMA table_info(usage)").all().map((c) => c.name);
+for (const [col, type] of [["question", "TEXT"], ["answer", "TEXT"], ["has_image", "INTEGER NOT NULL DEFAULT 0"], ["pages", "INTEGER NOT NULL DEFAULT 0"]]) {
+  if (!usageCols.includes(col)) db.exec(`ALTER TABLE usage ADD COLUMN ${col} ${type}`);
+}
+db.exec("CREATE INDEX IF NOT EXISTS usage_user ON usage(user_id, created_at)");
+
 export const sha256 = (s) => crypto.createHash("sha256").update(s).digest("hex");
 export const newToken = () => crypto.randomBytes(32).toString("base64url");
 
