@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة الإدارة</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Kufi+Arabic:wght@700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/page.css"></head>
+<body><div class="wrap">
+<h1>لوحة الإدارة</h1>
+<div id="out">جارٍ التحميل…</div>
+<p><a href="/">العودة إلى الموقع</a></p>
+</div>
+<script>
+  const ILS_PER_USD = 3.7; // approximate, for a rough profit view only
+  fetch("/api/admin/stats").then(async (r) => {
+    const out = document.getElementById("out");
+    if (!r.ok) { out.textContent = r.status === 401 ? "سجّل الدخول أولًا." : "هذه الصفحة للمدير فقط."; return; }
+    const d = await r.json();
+    const stat = (k, v) => '<div class="stat"><div class="v">' + v + '</div><div class="k">' + k + '</div></div>';
+    const ils = (n) => "₪" + Math.round(n).toLocaleString("en");
+    const usd = (n) => "$" + n.toFixed(2);
+    out.innerHTML =
+      '<div class="stats">' +
+      stat("المستخدمون", d.users) +
+      stat("المشترون", d.payingUsers) +
+      stat("الدخل (كل الوقت)", ils(d.revenue)) +
+      stat("الدخل (٣٠ يومًا)", ils(d.revenue30d)) +
+      stat("الأسئلة (كل الوقت)", d.questions) +
+      stat("الأسئلة (٣٠ يومًا)", d.questions30d) +
+      stat("تكلفة الذكاء الاصطناعي (كل الوقت)", usd(d.apiCostUsd)) +
+      stat("تكلفة الذكاء الاصطناعي (٣٠ يومًا)", usd(d.apiCostUsd30d)) +
+      stat("متوسط تكلفة السؤال", d.questions ? usd(d.apiCostUsd / d.questions) : "—") +
+      stat("الربح التقريبي (٣٠ يومًا، قبل الرسوم والضرائب)", ils(d.revenue30d - d.apiCostUsd30d * ILS_PER_USD)) +
+      "</div><h2>آخر المشتريات</h2>" +
+      (d.recentPurchases.length
+        ? '<ul class="list">' + d.recentPurchases.map((p) => "<li>" + p.email.replace(/</g, "&lt;") + " — ₪" + p.amount + " — " + new Date(p.created_at).toLocaleDateString("ar") + "</li>").join("") + "</ul>"
+        : "<p>لا توجد مشتريات بعد.</p>");
+  });
+</script></body></html>

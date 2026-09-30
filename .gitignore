@@ -1,0 +1,19 @@
+# Dependencies and local state
+node_modules/
+data/
+.cache/
+.env
+.site-password
+
+# Course materials, dictionary scans and rendered pages: copyrighted and large (~400 MB).
+# They stay on the owner's machine; deploys upload them from there.
+materials/
+rendered/
+
+# Compiled macOS helpers (rebuilt from tools/*.swift)
+tools/ocr
+tools/render
+
+*.log
+.DS_Store
+.invite-code

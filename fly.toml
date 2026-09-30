@@ -1,0 +1,29 @@
+# Deployment config for fly.io. The API key and site password are stored as fly secrets,
+# never in this file: fly secrets set ANTHROPIC_API_KEY=... SITE_PASSWORD=...
+app = "your-fly-app-name"
+primary_region = "fra"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"   # sleeps when unused, wakes on the next visit
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1
+
+[env]
+  DATA_DIR = "/data"
+  PUBLIC_URL = "https://your-fly-app-name.fly.dev"
+  # ADMIN_EMAILS, SIGNUP_ALLOWLIST (private test phase: owner only) and INVITE_CODE (demo links)
+  # are fly secrets, so personal emails and the invite code stay out of the repo.
+  INVITE_QUESTIONS = "20"
+  INVITE_MAX = "30"
+
+# Persistent disk for the SQLite database (accounts, purchases, usage).
+[mounts]
+  source = "data"
+  destination = "/data"

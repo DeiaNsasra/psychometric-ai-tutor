@@ -1,0 +1,21 @@
+{
+  "name": "psychometric-arabic",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "index": "node build-index.js",
+    "index:dictionary": "node tools/build-dictionary-index.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "better-sqlite3": "^12.11.1",
+    "express": "^4.21.0",
+    "pdf-lib": "^1.17.1",
+    "stripe": "^22.6.2"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "^5.6.205"
+  }
+}

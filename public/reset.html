@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>كلمة مرور جديدة</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Kufi+Arabic:wght@700&display=swap" rel="stylesheet"><link rel="stylesheet" href="/page.css"></head>
+<body><div class="wrap"><div class="card" style="max-width:420px;margin:40px auto">
+<h1>كلمة مرور جديدة</h1>
+<form id="f"><label for="pw">كلمة المرور الجديدة (٨ أحرف على الأقل)</label>
+<input id="pw" type="password" autocomplete="new-password" minlength="8" required>
+<button class="primary" type="submit">حفظ</button><div class="msg" id="m"></div></form>
+</div></div>
+<script>
+  document.getElementById("f").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const token = new URLSearchParams(location.search).get("token");
+    const r = await fetch("/api/reset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ token, password: document.getElementById("pw").value }) });
+    const d = await r.json().catch(() => ({}));
+    const m = document.getElementById("m");
+    if (!r.ok) { m.className = "msg err"; m.textContent = d.error || "حدث خطأ."; return; }
+    m.className = "msg"; m.textContent = "تمّ الحفظ. جارٍ تحويلك…";
+    setTimeout(() => (location.href = "/"), 1200);
+  });
+</script></body></html>

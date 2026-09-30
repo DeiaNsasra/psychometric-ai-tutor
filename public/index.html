@@ -1,0 +1,846 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مُعلّم البسيخومتري</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;600;700&family=Noto+Kufi+Arabic:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --surface: #ffffff;
+    --text: #1f2328;
+    --muted: #6b6f76;
+    --border: #e3dfd6;
+    --accent: #2f6f5e;
+    --accent-soft: #e4efe9;
+    --user-bg: #2f6f5e;
+    --user-text: #ffffff;
+    --code-bg: #f1eee7;
+    --warn-bg: #fff4d6;
+    --warn-text: #7a5a00;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #16181b;
+      --surface: #1f2226;
+      --text: #e8e6e1;
+      --muted: #9a9ea5;
+      --border: #30343a;
+      --accent: #6cc3a6;
+      --accent-soft: #23332e;
+      --user-bg: #2f6f5e;
+      --user-text: #ffffff;
+      --code-bg: #2a2e33;
+      --warn-bg: #3a3220;
+      --warn-text: #f0d48a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #16181b; --surface: #1f2226; --text: #e8e6e1; --muted: #9a9ea5;
+    --border: #30343a; --accent: #6cc3a6; --accent-soft: #23332e;
+    --user-bg: #2f6f5e; --user-text: #ffffff; --code-bg: #2a2e33;
+    --warn-bg: #3a3220; --warn-text: #f0d48a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Noto Naskh Arabic", system-ui, sans-serif;
+    font-size: 18px;
+    line-height: 1.9;
+    display: flex;
+    flex-direction: column;
+  }
+  header {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  header h1 {
+    font-family: "Noto Kufi Arabic", sans-serif;
+    font-size: 20px;
+    margin: 0;
+    color: var(--accent);
+  }
+  header button {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font: inherit;
+    font-size: 15px;
+    padding: 4px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  #banner {
+    display: none;
+    background: var(--warn-bg);
+    color: var(--warn-text);
+    padding: 10px 16px;
+    font-size: 16px;
+  }
+  main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 16px 8px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  .welcome { text-align: center; padding: 32px 0 12px; }
+  .welcome h2 { font-family: "Noto Kufi Arabic", sans-serif; font-size: 24px; margin: 0 0 8px; }
+  .welcome p { color: var(--muted); margin: 0 0 24px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .chip {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+    padding: 8px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+  .chip:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .msg { margin: 0 0 18px; display: flex; }
+  .msg.user { justify-content: flex-start; }
+  .msg.assistant { justify-content: flex-end; }
+  .bubble {
+    max-width: 100%;
+    padding: 12px 18px;
+    border-radius: 16px;
+    overflow-wrap: anywhere;
+  }
+  .user .bubble {
+    background: var(--user-bg);
+    color: var(--user-text);
+    max-width: 85%;
+    white-space: pre-wrap;
+    unicode-bidi: plaintext;
+    border-bottom-right-radius: 4px;
+  }
+  .assistant .bubble {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    width: 100%;
+  }
+  .bubble p { margin: 0 0 10px; }
+  .bubble p:last-child { margin-bottom: 0; }
+  .bubble h1, .bubble h2, .bubble h3 {
+    font-family: "Noto Kufi Arabic", sans-serif;
+    font-size: 18px;
+    margin: 14px 0 6px;
+    color: var(--accent);
+  }
+  .bubble ul, .bubble ol { padding-inline-start: 24px; margin: 6px 0 10px; }
+  .bubble code {
+    direction: ltr;
+    unicode-bidi: isolate;
+    display: inline-block;
+    background: var(--code-bg);
+    padding: 0 8px;
+    border-radius: 6px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 16px;
+  }
+  .bubble pre {
+    direction: ltr;
+    text-align: left;
+    background: var(--code-bg);
+    padding: 10px 14px;
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+  .bubble pre code { padding: 0; background: none; }
+  .bubble hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
+  .bubble.error { border-color: #c0392b; color: #c0392b; }
+  .sources {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--border);
+    color: var(--muted);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .typing { color: var(--muted); }
+  .typing::after { content: "…"; animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: 0.2; } }
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+    padding: 12px 16px;
+  }
+  form { display: flex; gap: 10px; align-items: flex-end; }
+  textarea {
+    flex: 1;
+    resize: none;
+    font: inherit;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px 14px;
+    max-height: 200px;
+  }
+  textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  #send {
+    background: var(--accent);
+    color: #fff;
+    border: 0;
+    font: inherit;
+    font-weight: 700;
+    padding: 10px 22px;
+    border-radius: 14px;
+    cursor: pointer;
+  }
+  #send:disabled { opacity: 0.5; cursor: default; }
+  #attach {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+    padding: 10px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #attach:hover { border-color: var(--accent); }
+  #previews { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+  #previews:empty { display: none; }
+  .thumb { position: relative; }
+  .thumb img {
+    height: 72px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    display: block;
+  }
+  .thumb button {
+    position: absolute;
+    top: -8px;
+    left: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 0;
+    background: #c0392b;
+    color: #fff;
+    font-size: 14px;
+    line-height: 24px;
+    cursor: pointer;
+    padding: 0;
+  }
+  .user .bubble img {
+    display: block;
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+  body.dragging main { outline: 3px dashed var(--accent); outline-offset: -10px; }
+  .hint { color: var(--muted); font-size: 13px; margin-top: 6px; text-align: center; }
+  .hint a { color: var(--muted); }
+  .head-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+  #acct { color: var(--muted); font-size: 14px; }
+  header h1 { white-space: nowrap; }
+  @media (max-width: 560px) {
+    header { padding: 10px 12px; }
+    header h1 { font-size: 17px; }
+    header button { font-size: 13px; padding: 3px 10px; white-space: nowrap; }
+    #acct { font-size: 12px; }
+    .head-actions { gap: 6px; flex-wrap: nowrap; }
+  }
+  #buy {
+    background: var(--accent); color: #fff; border: 0; font: inherit; font-size: 14px; font-weight: 700;
+    padding: 4px 14px; border-radius: 999px; cursor: pointer;
+  }
+  /* ---------- Auth screen ---------- */
+  #auth { display: none; flex: 1; overflow-y: auto; padding: 28px 16px 40px; }
+  body.signed-out #auth { display: block; }
+  body.signed-out main, body.signed-out footer, body.signed-out .head-actions { display: none; }
+  /* Phone: headline, then the form, then the details. Desktop: text on the right, form on the left. */
+  .auth-grid {
+    max-width: 980px; margin: 0 auto; display: grid; gap: 22px;
+    grid-template-columns: minmax(0, 1fr); align-items: start;
+    grid-template-areas: "top" "card" "more";
+  }
+  .intro-top { grid-area: top; }
+  .intro-more { grid-area: more; }
+  .auth-grid > .card { grid-area: card; }
+  @media (min-width: 880px) {
+    .auth-grid {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 48px; row-gap: 0; padding-top: 24px;
+      grid-template-areas: "top card" "more card";
+    }
+  }
+  .badge {
+    display: inline-block; background: var(--accent-soft); color: var(--accent); font-weight: 700;
+    font-size: 15px; padding: 4px 14px; border-radius: 999px; margin-bottom: 14px;
+  }
+  .intro-top h2 {
+    font-family: "Noto Kufi Arabic", sans-serif; font-size: 30px; line-height: 1.5; margin: 0 0 10px;
+  }
+  @media (max-width: 520px) { .intro-top h2 { font-size: 24px; } }
+  .intro-top .lead { color: var(--muted); font-size: 18px; margin: 0 0 22px; }
+  @media (max-width: 879px) { .intro-top .lead { margin-bottom: 0; } }
+  .features { list-style: none; padding: 0; margin: 0 0 22px; display: grid; gap: 12px; }
+  .features li { display: flex; gap: 12px; align-items: flex-start; font-size: 17px; line-height: 1.7; }
+  .features .ic {
+    flex: none; width: 32px; height: 32px; border-radius: 10px; background: var(--accent-soft);
+    color: var(--accent); display: grid; place-items: center; font-size: 17px;
+  }
+  .features b { display: block; }
+  .features span.d { color: var(--muted); font-size: 15px; }
+  .price {
+    border: 1px solid var(--border); background: var(--surface); border-radius: 14px;
+    padding: 12px 16px; font-size: 16px; color: var(--muted);
+  }
+  .price strong { color: var(--text); }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 24px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+  }
+  @media (min-width: 880px) { .card { position: sticky; top: 24px; padding: 28px; } }
+  .card h3 { font-family: "Noto Kufi Arabic", sans-serif; font-size: 20px; margin: 0 0 16px; }
+  .tabs {
+    display: flex; background: var(--bg); border: 1px solid var(--border); border-radius: 12px;
+    padding: 4px; margin-bottom: 18px;
+  }
+  .tabs button {
+    flex: 1; background: none; border: 0; color: var(--muted); font: inherit; font-size: 16px;
+    padding: 8px; border-radius: 9px; cursor: pointer;
+  }
+  .tabs button.on { background: var(--surface); color: var(--text); font-weight: 700; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  #authForm { display: block; } /* the chat composer's "form" flex rule must not apply here */
+  .card a { color: var(--accent); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+  .field .hint2 { color: var(--muted); font-size: 13px; margin-top: 4px; }
+  .input-wrap { position: relative; }
+  .card input[type=email], .card input[type=password], .card input[type=text] {
+    width: 100%; height: 50px; font: inherit; font-size: 17px; padding: 0 14px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    direction: ltr; text-align: left;
+  }
+  .card input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+  .card input[type=password], .card input.pw { padding-right: 76px; }
+  .toggle-pw {
+    position: absolute; top: 50%; right: 8px; transform: translateY(-50%);
+    background: none; border: 0; color: var(--accent); font: inherit; font-size: 14px; cursor: pointer; padding: 6px 8px;
+  }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; margin: 4px 0 6px; line-height: 1.7; }
+  .check input { width: 20px; height: 20px; margin-top: 4px; accent-color: var(--accent); flex: none; }
+  .card .primary {
+    width: 100%; height: 52px; margin-top: 10px; background: var(--accent); color: #fff; border: 0;
+    font: inherit; font-size: 18px; font-weight: 700; border-radius: 12px; cursor: pointer;
+  }
+  .card .primary:disabled { opacity: 0.6; cursor: default; }
+  .below { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; flex-wrap: wrap; gap: 8px; }
+  .card .link { background: none; border: 0; color: var(--accent); font: inherit; font-size: 15px; cursor: pointer; padding: 0; }
+  .card .msg { font-size: 15px; margin-top: 12px; border-radius: 10px; padding: 0; }
+  .card .msg:not(:empty) { padding: 10px 12px; background: var(--accent-soft); }
+  .card .msg.err:not(:empty) { background: #fdecea; color: #b3261e; }
+  .small-note { color: var(--muted); font-size: 13px; margin-top: 14px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>مُعلّم البسيخومتري</h1>
+  <div class="head-actions">
+    <span id="acct"></span>
+    <button id="buy" type="button" hidden>اشترِ الباقة</button>
+    <button id="reset" type="button">محادثة جديدة</button>
+    <button id="logout" type="button">خروج</button>
+  </div>
+</header>
+<section id="auth">
+  <div class="auth-grid">
+    <div class="intro-top">
+      <span class="badge" id="freeBadge">٥ أسئلة مجانًا · بدون بطاقة دفع</span>
+      <h2>مُعلّمك الخاص للبسيخومتري، متاح في أي وقت</h2>
+      <p class="lead">اسأل عن أي سؤال في التفكير الكمي أو الكلامي، واحصل على شرح واضح بالعربية خطوة بخطوة، بنفس طرق كتاب الدورة.</p>
+    </div>
+    <div class="intro-more">
+      <ul class="features">
+        <li><span class="ic">١</span><div><b>حلّ خطوة بخطوة</b><span class="d">يحدد نوع السؤال والطريقة المناسبة من المادة، ويشرح لماذا الإجابات الأخرى خاطئة.</span></div></li>
+        <li><span class="ic">📷</span><div><b>صوّر السؤال وأرسله</b><span class="d">التقط صورة السؤال من كتابك أو امتحانك، والمعلّم يقرؤه ويحلّه.</span></div></li>
+        <li><span class="ic">📖</span><div><b>معاني الكلمات من القاموس المحيط</b><span class="d">للمقابلات ومعاني الكلمات، مع الجذر ومكانه في القاموس.</span></div></li>
+        <li><span class="ic">✓</span><div><b>المصدر تحت كل إجابة</b><span class="d">اسم الكتاب ورقم الصفحة، لتراجع الشرح الأصلي بنفسك.</span></div></li>
+      </ul>
+      <div class="price" id="offer"></div>
+    </div>
+
+    <div class="card">
+      <div class="tabs" role="tablist">
+        <button type="button" data-tab="register" class="on" role="tab">حساب جديد</button>
+        <button type="button" data-tab="login" role="tab">تسجيل الدخول</button>
+      </div>
+      <h3 id="formTitle">ابدأ مجانًا</h3>
+      <form id="authForm" novalidate>
+        <div class="field">
+          <label for="email">البريد الإلكتروني</label>
+          <input id="email" type="email" autocomplete="email" inputmode="email" placeholder="name@example.com" required autofocus>
+        </div>
+        <div class="field" id="pwBox">
+          <label for="password">كلمة المرور</label>
+          <div class="input-wrap">
+            <input id="password" class="pw" type="password" autocomplete="new-password" minlength="8">
+            <button type="button" class="toggle-pw" id="togglePw">إظهار</button>
+          </div>
+          <div class="hint2" id="pwHint">٨ أحرف على الأقل</div>
+        </div>
+        <label class="check" id="termsBox">
+          <input id="terms" type="checkbox">
+          <span>أوافق على <a href="/terms.html" target="_blank">شروط الاستخدام</a> و<a href="/privacy.html" target="_blank">سياسة الخصوصية</a></span>
+        </label>
+        <button class="primary" id="authSubmit" type="submit">إنشاء حساب مجاني</button>
+        <div class="below">
+          <button class="link" id="forgotLink" type="button" hidden>نسيت كلمة المرور؟</button>
+          <button class="link" id="backLink" type="button" hidden>رجوع إلى تسجيل الدخول</button>
+        </div>
+        <div class="msg" id="authMsg" role="alert"></div>
+      </form>
+      <div class="small-note">تبقى متصلًا ٣٠ يومًا على هذا الجهاز.</div>
+    </div>
+  </div>
+</section>
+<div id="banner"></div>
+<main id="scroll">
+  <div class="wrap" id="chat">
+    <div class="welcome" id="welcome">
+      <h2>أهلًا بك</h2>
+      <p>اسألني عن أي موضوع في مواد الدورة، أو أرسل سؤالًا لأحلّه معك خطوة بخطوة.</p>
+      <div class="chips">
+        <button class="chip" data-q="أريد أن أحلّ سؤالًا في التفكير الكمي. سأرسله لك الآن.">حلّ سؤال كمي</button>
+        <button class="chip" data-q="اشرح لي طرق حلّ أسئلة التفكير الكلامي كما وردت في المواد.">شرح التفكير الكلامي</button>
+        <button class="chip" data-q="أعطني سؤال تدريب واحدًا بنفس أسلوب مواد الدورة، وانتظر إجابتي قبل أن تكشف الحل.">سؤال تدريب</button>
+        <button class="chip" data-q="اشرح لي مبنى موضوع التعبير الكتابي الموصى به في المواد.">مبنى التعبير الكتابي</button>
+        <button class="chip" data-q="كيف أقرأ المعطيات وأستنتج منها حسب المواد؟">قراءة المعطيات</button>
+      </div>
+    </div>
+  </div>
+</main>
+<footer>
+  <div class="wrap">
+    <div id="previews"></div>
+    <form id="form">
+      <button id="attach" type="button" title="أرفق صورة سؤال">📷 صورة</button>
+      <input id="file" type="file" accept="image/*" multiple hidden>
+      <textarea id="input" dir="auto" rows="1" placeholder="اكتب سؤالك هنا"></textarea>
+      <button id="send" type="submit">إرسال</button>
+    </form>
+    <div class="hint">الإجابات مبنية على مواد الدورة فقط · يمكنك لصق صورة السؤال أو سحبها إلى الصفحة · <a href="/terms.html" target="_blank">الشروط</a> · <a href="/privacy.html" target="_blank">الخصوصية</a></div>
+  </div>
+</footer>
+<script>
+  const chat = document.getElementById("chat");
+  const scroller = document.getElementById("scroll");
+  const input = document.getElementById("input");
+  const sendBtn = document.getElementById("send");
+  const welcome = document.getElementById("welcome");
+  const banner = document.getElementById("banner");
+  const STORE = "psy-chat";
+
+  // ---------- Account ----------
+  const acct = document.getElementById("acct");
+  const buyBtn = document.getElementById("buy");
+  let me = null;
+  const fmtDate = (ms) => new Date(ms).toLocaleDateString("ar", { day: "numeric", month: "long", year: "numeric" });
+
+  function showAccount() {
+    if (me.unlimited) {
+      acct.innerHTML = 'حساب المدير · بلا حدود · <a href="/admin.html" style="color:inherit">لوحة الإدارة</a>';
+      buyBtn.hidden = true;
+      return;
+    }
+    let t = "متبقٍ " + me.questionsLeft + " سؤالًا";
+    if (me.accessUntil) t += " · حتى " + fmtDate(me.accessUntil);
+    acct.textContent = t;
+    buyBtn.hidden = !me.paymentsEnabled || (me.accessUntil && me.accessUntil > Date.now() && me.questionsLeft > 50);
+  }
+
+  async function refreshMe() {
+    const r = await fetch("/api/me");
+    if (r.status === 401) { document.body.classList.add("signed-out"); return false; }
+    me = await r.json();
+    document.body.classList.remove("signed-out");
+    showAccount();
+    return true;
+  }
+
+  async function buy() {
+    buyBtn.disabled = true;
+    try {
+      const r = await fetch("/api/checkout", { method: "POST" });
+      const d = await r.json();
+      if (d.url) location.href = d.url;
+      else alert(d.error || "تعذّر فتح صفحة الدفع.");
+    } finally { buyBtn.disabled = false; }
+  }
+  buyBtn.addEventListener("click", buy);
+
+  document.getElementById("logout").addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST" });
+    try { localStorage.removeItem(STORE); } catch {}
+    location.reload();
+  });
+
+  // Auth form: register / login / forgot-password modes.
+  let mode = "register";
+  // Demo invite links look like /?invite=CODE; keep the code for the signup request.
+  const invite = new URLSearchParams(location.search).get("invite") || "";
+  if (invite) {
+    document.getElementById("freeBadge").textContent = "دعوة تجربة · ٢٠ سؤالًا مجانًا";
+  }
+  const authMsg = document.getElementById("authMsg");
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll(".tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === m));
+    document.querySelector(".tabs").hidden = m === "forgot";
+    document.getElementById("pwBox").hidden = m === "forgot";
+    document.getElementById("pwHint").hidden = m !== "register";
+    document.getElementById("termsBox").hidden = m !== "register";
+    document.getElementById("forgotLink").hidden = m !== "login";
+    document.getElementById("backLink").hidden = m !== "forgot";
+    document.getElementById("password").autocomplete = m === "register" ? "new-password" : "current-password";
+    document.getElementById("formTitle").textContent =
+      m === "register" ? "ابدأ مجانًا" : m === "login" ? "أهلًا بعودتك" : "استعادة كلمة المرور";
+    document.getElementById("authSubmit").textContent =
+      m === "register" ? "إنشاء حساب مجاني" : m === "login" ? "دخول" : "أرسل رابط الاستعادة";
+    authMsg.textContent = "";
+    authMsg.className = "msg";
+  }
+  document.getElementById("backLink").addEventListener("click", () => setMode("login"));
+  document.getElementById("togglePw").addEventListener("click", () => {
+    const pw = document.getElementById("password");
+    const show = pw.type === "password";
+    pw.type = show ? "text" : "password";
+    document.getElementById("togglePw").textContent = show ? "إخفاء" : "إظهار";
+  });
+  document.querySelectorAll(".tabs button").forEach((b) => b.addEventListener("click", () => setMode(b.dataset.tab)));
+  document.getElementById("forgotLink").addEventListener("click", () => setMode("forgot"));
+
+  const fail = (text) => { authMsg.className = "msg err"; authMsg.textContent = text; };
+  document.getElementById("authForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const acceptTerms = document.getElementById("terms").checked;
+    // Check the obvious mistakes here, so the student gets an answer instantly.
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("اكتب بريدًا إلكترونيًا صحيحًا، مثل name@example.com");
+    if (mode !== "forgot" && !password) return fail("اكتب كلمة المرور.");
+    if (mode === "register" && password.length < 8) return fail("كلمة المرور قصيرة: يجب أن تكون ٨ أحرف على الأقل.");
+    if (mode === "register" && !acceptTerms) return fail("يجب الموافقة على شروط الاستخدام وسياسة الخصوصية.");
+    const btn = document.getElementById("authSubmit");
+    const label = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "لحظة…";
+    const url = { register: "/api/register", login: "/api/login", forgot: "/api/forgot" }[mode];
+    let r, d;
+    try {
+      r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, password, acceptTerms, invite }) });
+      d = await r.json().catch(() => ({}));
+    } catch {
+      r = { ok: false }; d = { error: "تعذّر الاتصال. تأكد من الإنترنت وحاول مرة أخرى." };
+    }
+    btn.disabled = false;
+    btn.textContent = label;
+    if (!r.ok) return fail(d.error || "حدث خطأ. حاول مرة أخرى.");
+    if (mode === "forgot") { authMsg.className = "msg"; authMsg.textContent = "إذا كان البريد مسجّلًا، أرسلنا إليه رابطًا لإعادة تعيين كلمة المرور."; return; }
+    try { localStorage.removeItem(STORE); } catch {}
+    location.reload();
+  });
+
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(STORE) || "[]"); } catch {}
+
+  // Images can exceed browser storage; if they don't fit, keep the conversation without them.
+  function save() {
+    try {
+      localStorage.setItem(STORE, JSON.stringify(history));
+    } catch {
+      try {
+        const slim = history.map(({ images, ...m }) => m);
+        localStorage.setItem(STORE, JSON.stringify(slim));
+      } catch {}
+    }
+  }
+
+  // ---------- Question images ----------
+  const MAX_IMAGES = 4;
+  const MAX_SIDE = 1600; // px; keeps uploads small while text stays readable
+  const previews = document.getElementById("previews");
+  const fileInput = document.getElementById("file");
+  let pending = []; // [{ media_type, data }] waiting to be sent
+
+  async function readImage(file) {
+    const bitmap = await createImageBitmap(file);
+    const scale = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bitmap.width * scale);
+    canvas.height = Math.round(bitmap.height * scale);
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff"; // transparent screenshots become white, not black
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    const url = canvas.toDataURL("image/jpeg", 0.85);
+    return { media_type: "image/jpeg", data: url.slice(url.indexOf(",") + 1) };
+  }
+
+  async function addFiles(files) {
+    for (const f of files) {
+      if (!f.type.startsWith("image/") || pending.length >= MAX_IMAGES) continue;
+      try { pending.push(await readImage(f)); } catch {}
+    }
+    renderPreviews();
+    input.focus();
+  }
+
+  const imgSrc = (im) => "data:" + im.media_type + ";base64," + im.data;
+
+  function renderPreviews() {
+    previews.innerHTML = "";
+    pending.forEach((im, i) => {
+      const box = document.createElement("div");
+      box.className = "thumb";
+      const img = document.createElement("img");
+      img.src = imgSrc(im);
+      img.alt = "صورة السؤال";
+      const del = document.createElement("button");
+      del.type = "button";
+      del.textContent = "×";
+      del.title = "إزالة الصورة";
+      del.onclick = () => { pending.splice(i, 1); renderPreviews(); };
+      box.append(img, del);
+      previews.appendChild(box);
+    });
+  }
+
+  document.getElementById("attach").addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", () => { addFiles([...fileInput.files]); fileInput.value = ""; });
+
+  document.addEventListener("paste", (e) => {
+    const files = [...(e.clipboardData?.files || [])].filter((f) => f.type.startsWith("image/"));
+    if (files.length) { e.preventDefault(); addFiles(files); }
+  });
+
+  document.addEventListener("dragover", (e) => { e.preventDefault(); document.body.classList.add("dragging"); });
+  document.addEventListener("dragleave", (e) => { if (!e.relatedTarget) document.body.classList.remove("dragging"); });
+  document.addEventListener("drop", (e) => {
+    e.preventDefault();
+    document.body.classList.remove("dragging");
+    addFiles([...(e.dataTransfer?.files || [])]);
+  });
+
+  function render(md) {
+    return DOMPurify.sanitize(marked.parse(md, { breaks: true }));
+  }
+
+  function refLabel(r) {
+    if (r.root) return "القاموس المحيط: " + r.root;
+    const name = r.file.replace(/\.pdf$/i, "").replace(/_/g, " ");
+    return name + " (صفحات " + r.start + "–" + r.end + ")";
+  }
+
+  function showSources(bubble, refs) {
+    if (!refs || !refs.length) return;
+    const div = document.createElement("div");
+    div.className = "sources";
+    div.textContent = "المصادر: " + refs.map(refLabel).join("، ");
+    bubble.appendChild(div);
+  }
+
+  function addBubble(role, text, images) {
+    welcome.style.display = "none";
+    const row = document.createElement("div");
+    row.className = "msg " + role;
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    if (role === "user") {
+      for (const im of images || []) {
+        const img = document.createElement("img");
+        img.src = imgSrc(im);
+        img.alt = "صورة السؤال";
+        bubble.appendChild(img);
+      }
+      // One block per line with dir="auto": a line of math reads left-to-right, an Arabic line
+      // right-to-left, instead of the whole message being forced into one direction.
+      for (const line of (text || "").split("\n")) {
+        const div = document.createElement("div");
+        div.dir = "auto";
+        div.textContent = line || "\u00a0";
+        bubble.appendChild(div);
+      }
+    } else {
+      bubble.innerHTML = render(text);
+    }
+    row.appendChild(bubble);
+    chat.appendChild(row);
+    scroller.scrollTop = scroller.scrollHeight;
+    return bubble;
+  }
+
+  history.forEach((m, i) => {
+    const b = addBubble(m.role, m.text, m.images);
+    if (m.role === "assistant" && history[i - 1]) showSources(b, history[i - 1].refs);
+  });
+
+  refreshMe().then((ok) => {
+    if (!ok) {
+      fetch("/api/offer").then((r) => r.json()).then((o) => {
+        const ar = (n) => Number(n).toLocaleString("ar-EG");
+        if (!invite) document.getElementById("freeBadge").textContent = ar(o.free) + " أسئلة مجانًا · بدون بطاقة دفع";
+        document.getElementById("offer").innerHTML =
+          "بعد الأسئلة المجانية: <strong>باقة " + ar(o.questions) + " سؤال لمدة " + ar(Math.round(o.days / 30)) +
+          " أشهر بـ " + ar(o.price) + " ₪</strong>، تُدفع مرة واحدة، بدون اشتراك متجدد.";
+      }).catch(() => {});
+      return;
+    }
+    const paid = new URLSearchParams(location.search).get("paid");
+    if (paid === "1") {
+      addBubble("assistant", "شكرًا لك! تمّ الدفع بنجاح. قد يستغرق تحديث رصيد الأسئلة بضع ثوانٍ.");
+      setTimeout(refreshMe, 4000);
+    }
+    if (paid) window.history.replaceState(null, "", "/");
+  });
+
+  fetch("/api/materials").then((r) => r.json()).then((d) => {
+    if (!d.files.length) {
+      banner.textContent = "لم تُفهرَس مواد الدورة بعد. ضع الملفات في مجلد المواد وشغّل الفهرسة ثم أعد تشغيل الموقع.";
+      banner.style.display = "block";
+    }
+  }).catch(() => {});
+
+  async function ask(text, images = []) {
+    const turn = { role: "user", text };
+    if (images.length) turn.images = images;
+    history.push(turn);
+    save();
+    addBubble("user", text, images);
+    const bubble = addBubble("assistant", "");
+    bubble.innerHTML = '<span class="typing">أبحث في المواد</span>';
+    sendBtn.disabled = true;
+
+    let answer = "";
+    let failed = false;
+    try {
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history }),
+      });
+      if (res.status === 401) { location.reload(); return; }
+      if (res.status === 402) {
+        const d = await res.json();
+        failed = true;
+        bubble.classList.add("error");
+        bubble.textContent = d.error;
+        if (me?.paymentsEnabled) {
+          const b = document.createElement("button");
+          b.className = "chip";
+          b.style.marginTop = "10px";
+          b.textContent = "اشترِ الباقة: " + me.package.questions + " سؤال لمدة " + Math.round(me.package.days / 30) + " أشهر بـ " + me.package.price + " ₪";
+          b.onclick = buy;
+          bubble.appendChild(document.createElement("br"));
+          bubble.appendChild(b);
+        }
+        throw new Error("handled");
+      }
+      if (!res.ok || !res.body) throw new Error();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const events = buf.split("\n\n");
+        buf = events.pop();
+        for (const ev of events) {
+          if (!ev.startsWith("data: ")) continue;
+          const data = JSON.parse(ev.slice(6));
+          if (data.refs) {
+            turn.refs = data.refs;
+            bubble.innerHTML = '<span class="typing">جارٍ التفكير</span>';
+          } else if (data.text) {
+            answer += data.text;
+            bubble.innerHTML = render(answer);
+            scroller.scrollTop = scroller.scrollHeight;
+          } else if (data.error) {
+            failed = true;
+            bubble.classList.add("error");
+            bubble.textContent = data.error;
+          }
+        }
+      }
+    } catch (err) {
+      failed = true;
+      if (err?.message !== "handled") {
+        bubble.classList.add("error");
+        bubble.textContent = "تعذّر الاتصال بالخادم. تأكد أن الموقع يعمل ثم حاول مرة أخرى.";
+      }
+    }
+
+    if (failed || !answer) {
+      // Drop the unanswered question so the conversation stays user/assistant alternating.
+      history.pop();
+      input.value = text;
+      pending = images;
+      renderPreviews();
+    } else {
+      history.push({ role: "assistant", text: answer });
+      showSources(bubble, turn.refs);
+      refreshMe();
+    }
+    save();
+    sendBtn.disabled = false;
+    input.focus();
+  }
+
+  document.getElementById("form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = input.value.trim();
+    if ((!text && !pending.length) || sendBtn.disabled) return;
+    const images = pending;
+    pending = [];
+    renderPreviews();
+    input.value = "";
+    input.style.height = "auto";
+    ask(text, images);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      document.getElementById("form").requestSubmit();
+    }
+  });
+
+  input.addEventListener("input", () => {
+    input.style.height = "auto";
+    input.style.height = input.scrollHeight + "px";
+  });
+
+  document.querySelectorAll(".chip").forEach((c) =>
+    c.addEventListener("click", () => { if (!sendBtn.disabled) ask(c.dataset.q); })
+  );
+
+  document.getElementById("reset").addEventListener("click", () => {
+    history = [];
+    save();
+    chat.querySelectorAll(".msg").forEach((m) => m.remove());
+    welcome.style.display = "";
+  });
+</script>
+</body>
+</html>
