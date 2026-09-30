@@ -23,7 +23,10 @@ const ROUTER_MODEL = process.env.ROUTER_MODEL || "claude-opus-5";
 // "pdf": pages cut from the PDFs. Images cost about half: the PDFs' garbled text layer is billed too.
 const PAGE_FORMAT = process.env.PAGE_FORMAT || (fs.existsSync("rendered") ? "image" : "pdf");
 const MATERIALS_DIR = "materials";
-const MAX_PAGES_PER_TURN = Number(process.env.MAX_PAGES_PER_TURN) || 12; // pages the router may pick for one question
+// 8 pages + medium answer effort: 18/18 on the eval at ~$0.06/question (vs 12 pages, default effort ~$0.066).
+const MAX_PAGES_PER_TURN = Number(process.env.MAX_PAGES_PER_TURN) || 8;
+// Answer model effort (low | medium | high); unset = the model's default.
+const ANSWER_EFFORT = process.env.ANSWER_EFFORT ?? "medium"; // pages the router may pick for one question
 const MAX_PAGES_TOTAL = 24; // pages attached across the whole conversation (newest turns kept)
 const SYSTEM_PROMPT = fs.readFileSync("system-prompt.md", "utf8");
 const NO_ANSWER = "لا توجد إجابة في المواد المرفقة.";
@@ -434,6 +437,7 @@ app.post("/api/chat", requireUser, async (req, res) => {
       model: MODEL,
       max_tokens: 64000,
       thinking: { type: "adaptive" },
+      ...(ANSWER_EFFORT ? { output_config: { effort: ANSWER_EFFORT } } : {}),
       cache_control: { type: "ephemeral" },
       ...FALLBACK,
       system: SYSTEM_PROMPT,
