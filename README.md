@@ -2,7 +2,7 @@
 
 **An Arabic-language AI tutor for the Israeli Psychometric Entrance Exam that answers only from a licensed course library, and costs about $0.06 per question.**
 
-Students type a question (or photograph one from their book), and the tutor solves it step by step in Arabic, using the methods taught in the course and citing the book and page it relied on. When the course material doesn't cover something, it says so instead of guessing.
+Students type a question (or photograph one from their book), and the tutor solves it step by step in Arabic, using only the methods taught in the course. When the course material doesn't cover something, it says so instead of guessing.
 
 <p align="center">
   <img src="docs/chat-question-phone.png" width="260" alt="A student's quantitative question on a phone">
@@ -19,7 +19,7 @@ Students type a question (or photograph one from their book), and the tutor solv
 - **Step-by-step solutions** in Arabic, right-to-left, with math kept readable left-to-right, following the course's own methods.
 - **Photo questions:** paste, drag, or snap a photo of a question; the tutor reads it and solves it.
 - **Word meanings from *al-Qamus al-Muhit***, a 1,800-page scanned classical Arabic dictionary, for verbal-reasoning analogies.
-- **Sources under every answer:** book and page numbers.
+- **Short, focused answers** written for reading on a phone.
 - **Accounts and payments:** 5 free questions on signup, then a one-time package through Stripe Checkout. Includes an admin dashboard for revenue, usage, AI cost and margin.
 
 ## How it works
@@ -32,7 +32,7 @@ flowchart LR
     P --> A["Answerer<br/>Claude Sonnet 5<br/>strict 'materials only' tutor prompt"]
     D --> A
     Q --> A
-    A --> S["Streamed answer + sources"]
+    A --> S["Streamed answer"]
 ```
 
 1. **Routing.** The course library is far too large to send with every question (about 2,200 pages). A router call gets a compact index (the running header and first line of each run of pages) and returns the page ranges and dictionary roots the question needs. The index is prompt-cached for an hour, so this step costs about $0.02.
@@ -104,7 +104,7 @@ npm start                             # http://localhost:3000
 
 ## בעברית
 
-**מורה פרטי מבוסס בינה מלאכותית לבחינה הפסיכומטרית, בערבית.** התלמיד כותב שאלה או מצלם אותה מהספר, והמערכת פותרת אותה שלב אחר שלב לפי שיטות הקורס בלבד, עם הפניה לספר ולעמוד. המערכת בוחרת בכל שאלה את העמודים הרלוונטיים מתוך כ-2,200 עמודים, ומחפשת פירושי מילים במילון סרוק של 1,800 עמודים. את הזיהוי האופטי (OCR) בניתי בעצמי, והוא רץ על המחשב המקומי. בעזרת מערך בדיקה עם תשובות ידועות הורדתי את העלות לשאלה ב-81% (מ-$0.32 ל-$0.06), בלי לפגוע בדיוק. כולל הרשמה, תשלום דרך Stripe, לוח ניהול, ופריסה ב-Fly.io.
+**מורה פרטי מבוסס בינה מלאכותית לבחינה הפסיכומטרית, בערבית.** התלמיד כותב שאלה או מצלם אותה מהספר, והמערכת פותרת אותה שלב אחר שלב לפי שיטות הקורס בלבד, המערכת בוחרת בכל שאלה את העמודים הרלוונטיים מתוך כ-2,200 עמודים, ומחפשת פירושי מילים במילון סרוק של 1,800 עמודים. את הזיהוי האופטי (OCR) בניתי בעצמי, והוא רץ על המחשב המקומי. בעזרת מערך בדיקה עם תשובות ידועות הורדתי את העלות לשאלה ב-81% (מ-$0.32 ל-$0.06), בלי לפגוע בדיוק. כולל הרשמה, תשלום דרך Stripe, לוח ניהול, ופריסה ב-Fly.io.
 
 ---
 

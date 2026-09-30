@@ -164,14 +164,6 @@
   .bubble pre code { padding: 0; background: none; }
   .bubble hr { border: 0; border-top: 1px solid var(--border); margin: 14px 0; }
   .bubble.error { border-color: #c0392b; color: #c0392b; }
-  .sources {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px dashed var(--border);
-    color: var(--muted);
-    font-size: 14px;
-    line-height: 1.7;
-  }
   .typing { color: var(--muted); }
   .typing::after { content: "…"; animation: blink 1s infinite; }
   @keyframes blink { 50% { opacity: 0.2; } }
@@ -378,7 +370,7 @@
         <li><span class="ic">١</span><div><b>حلّ خطوة بخطوة</b><span class="d">يحدد نوع السؤال والطريقة المناسبة من المادة، ويشرح لماذا الإجابات الأخرى خاطئة.</span></div></li>
         <li><span class="ic">📷</span><div><b>صوّر السؤال وأرسله</b><span class="d">التقط صورة السؤال من كتابك أو امتحانك، والمعلّم يقرؤه ويحلّه.</span></div></li>
         <li><span class="ic">📖</span><div><b>معاني الكلمات من القاموس المحيط</b><span class="d">للمقابلات ومعاني الكلمات، مع الجذر ومكانه في القاموس.</span></div></li>
-        <li><span class="ic">✓</span><div><b>المصدر تحت كل إجابة</b><span class="d">اسم الكتاب ورقم الصفحة، لتراجع الشرح الأصلي بنفسك.</span></div></li>
+        <li><span class="ic">✓</span><div><b>إجابات قصيرة وواضحة</b><span class="d">شرح مركّز يسهل قراءته على الهاتف، بدون حشو.</span></div></li>
       </ul>
       <div class="price" id="offer"></div>
     </div>
@@ -650,20 +642,6 @@
     return DOMPurify.sanitize(marked.parse(md, { breaks: true }));
   }
 
-  function refLabel(r) {
-    if (r.root) return "القاموس المحيط: " + r.root;
-    const name = r.file.replace(/\.pdf$/i, "").replace(/_/g, " ");
-    return name + " (صفحات " + r.start + "–" + r.end + ")";
-  }
-
-  function showSources(bubble, refs) {
-    if (!refs || !refs.length) return;
-    const div = document.createElement("div");
-    div.className = "sources";
-    div.textContent = "المصادر: " + refs.map(refLabel).join("، ");
-    bubble.appendChild(div);
-  }
-
   function addBubble(role, text, images) {
     welcome.style.display = "none";
     const row = document.createElement("div");
@@ -696,7 +674,7 @@
 
   history.forEach((m, i) => {
     const b = addBubble(m.role, m.text, m.images);
-    if (m.role === "assistant" && history[i - 1]) showSources(b, history[i - 1].refs);
+
   });
 
   refreshMe().then((ok) => {
@@ -803,7 +781,7 @@
       renderPreviews();
     } else {
       history.push({ role: "assistant", text: answer });
-      showSources(bubble, turn.refs);
+
       refreshMe();
     }
     save();
