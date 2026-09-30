@@ -1,6 +1,6 @@
 # Psychometric AI Tutor
 
-**An Arabic-language AI tutor for the Israeli Psychometric Entrance Exam that answers only from a licensed course library, and costs about $0.07 per question.**
+**An Arabic-language AI tutor for the Israeli Psychometric Entrance Exam that answers only from a licensed course library, and costs about $0.06 per question.**
 
 Students type a question (or photograph one from their book), and the tutor solves it step by step in Arabic, using the methods taught in the course and citing the book and page it relied on. When the course material doesn't cover something, it says so instead of guessing.
 
@@ -41,7 +41,7 @@ flowchart LR
 
 ## Engineering highlights
 
-**Cutting cost by 78% without losing accuracy, measured rather than guessed.** I built an evaluation set of 18 questions with known answers (quantitative, analogies, word meanings, photo questions) and ran the real server under each configuration, grading final answers automatically:
+**Cutting cost by 81% without losing accuracy, measured rather than guessed.** I built an evaluation set of 18 questions with known answers (quantitative, analogies, word meanings, photo questions) and ran the real server under each configuration, grading final answers automatically:
 
 | Configuration | Correct | Avg. cost / question |
 |---|---|---|
@@ -49,9 +49,10 @@ flowchart LR
 | Page images instead of PDFs | 18/19 | $0.19 |
 | Images, up to 12 pages, Opus answers | 16/19* | ~$0.15 |
 | Images, 12 pages, Sonnet routes *and* answers | 17/19 | ~$0.09 |
-| **Opus routes, Sonnet answers, 12 pages (shipped)** | **18/18** | **$0.07** |
+| Opus routes, Sonnet answers, 12 pages | 18/18 | $0.07 |
+| **+ short answers, 8 pages, medium effort (shipped)** | **18/18** | **$0.06** |
 
-<sub>First four rows: first round with 19 questions. The last row is from the second round with 18, after English was removed from scope. \*Two misses traced to a bug where the model confused the student's photo with an attached book page. Labelling the photo fixed it, and the fix was verified in the second round.</sub>
+<sub>First four rows: first round with 19 questions. The last two rows: later rounds with 18, after English was removed from scope. \*Two misses traced to a bug where the model confused the student's photo with an attached book page. Labelling the photo fixed it, and the fix was verified in the second round.</sub>
 
 What made the difference:
 - **Images instead of PDFs.** The PDFs' Arabic text layer is garbled (presentation forms, swapped letters), yet the API bills each PDF page as image *plus* text. A 1100px JPEG costs 1,123 tokens against about 2,200 for the PDF page, and the text wasn't adding anything.
@@ -103,7 +104,7 @@ npm start                             # http://localhost:3000
 
 ## בעברית
 
-**מורה פרטי מבוסס בינה מלאכותית לבחינה הפסיכומטרית, בערבית.** התלמיד כותב שאלה או מצלם אותה מהספר, והמערכת פותרת אותה שלב אחר שלב לפי שיטות הקורס בלבד, עם הפניה לספר ולעמוד. המערכת בוחרת בכל שאלה את העמודים הרלוונטיים מתוך כ-2,200 עמודים, ומחפשת פירושי מילים במילון סרוק של 1,800 עמודים. את הזיהוי האופטי (OCR) בניתי בעצמי, והוא רץ על המחשב המקומי. בעזרת מערך בדיקה עם תשובות ידועות הורדתי את העלות לשאלה ב-78% (מ-$0.32 ל-$0.07), בלי לפגוע בדיוק. כולל הרשמה, תשלום דרך Stripe, לוח ניהול, ופריסה ב-Fly.io.
+**מורה פרטי מבוסס בינה מלאכותית לבחינה הפסיכומטרית, בערבית.** התלמיד כותב שאלה או מצלם אותה מהספר, והמערכת פותרת אותה שלב אחר שלב לפי שיטות הקורס בלבד, עם הפניה לספר ולעמוד. המערכת בוחרת בכל שאלה את העמודים הרלוונטיים מתוך כ-2,200 עמודים, ומחפשת פירושי מילים במילון סרוק של 1,800 עמודים. את הזיהוי האופטי (OCR) בניתי בעצמי, והוא רץ על המחשב המקומי. בעזרת מערך בדיקה עם תשובות ידועות הורדתי את העלות לשאלה ב-81% (מ-$0.32 ל-$0.06), בלי לפגוע בדיוק. כולל הרשמה, תשלום דרך Stripe, לוח ניהול, ופריסה ב-Fly.io.
 
 ---
 
